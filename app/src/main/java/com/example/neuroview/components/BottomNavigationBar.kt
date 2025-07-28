@@ -1,6 +1,7 @@
 package com.example.neuroview.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -11,16 +12,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.neuroview.Routes
 import com.example.neuroview.R
 
-// MODIFIED: BottomNavItem now holds two icon resource IDs
+
 data class BottomNavItem(
     val route: String,
-    val unselectedIcon: Int, // Icon for unselected state
-    val selectedIcon: Int,   // Icon for selected (filled) state
+    val unselectedIcon: Int,
+    val selectedIcon: Int,
     val isCentralButton: Boolean = false
 )
 
@@ -37,11 +39,8 @@ fun BottomNavigationBar(
     horizontalPadding: Int = 16
 ) {
     val items = listOf(
-        // MODIFIED: Provide both unselected and selected icon for Home
         BottomNavItem(Routes.DASHBOARD, R.drawable.ic_home, R.drawable.ic_home_filled),
-        // MODIFIED: For the central button, unselected and selected icons are the same
         BottomNavItem(Routes.UPLOAD_IMAGE, R.drawable.ic_cloud_upload, R.drawable.ic_cloud_upload, isCentralButton = true),
-        // MODIFIED: Provide both unselected and selected icon for Folder
         BottomNavItem(Routes.PAST_RECORDS, R.drawable.ic_folder, R.drawable.ic_folder_filled)
     )
 
@@ -136,7 +135,6 @@ fun CustomBottomNavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // MODIFIED: Choose icon based on selection state
         val iconToDisplay = if (isSelected) item.selectedIcon else item.unselectedIcon
         Icon(
             painter = painterResource(id = iconToDisplay),
@@ -149,16 +147,23 @@ fun CustomBottomNavItem(
 
 @Composable
 fun CustomElevatedFab(
-    icon: Int, // This icon will be the same regardless of selection for the FAB
-    isSelected: Boolean, // Kept for consistency, though not used to change FAB icon
+    icon: Int,
+    isSelected: Boolean,
     onClick: () -> Unit,
     fabSize: Int = 64,
-    iconSize: Int = 28
+    iconSize: Int = 28,
+    strokeColor: Color = Color.White,
+    strokeWidth: Dp = 2.dp
 ) {
     Card(
         modifier = Modifier
             .size(fabSize.dp)
-            .offset(y = (-20).dp),
+            .offset(y = (-20).dp)
+            .border(
+                width = strokeWidth,
+                color = strokeColor,
+                shape = CircleShape
+            ),
         shape = CircleShape,
         colors = CardDefaults.cardColors(containerColor = Color.Black),
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
