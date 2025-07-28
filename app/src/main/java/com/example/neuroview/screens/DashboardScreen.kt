@@ -1,20 +1,39 @@
 package com.example.neuroview.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.neuroview.Routes
 import com.example.neuroview.components.BottomNavigationBar
 import com.example.neuroview.components.TopAppBar
+import com.example.neuroview.R // Make sure R is imported to access drawables
 
+// Accompanist Pager imports
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
+import com.google.accompanist.pager.HorizontalPagerIndicator
+
+@OptIn(ExperimentalPagerApi::class) // Needed for Accompanist Pager
 @Composable
 fun DashboardScreen(navController: NavController) {
     Scaffold(
@@ -30,13 +49,13 @@ fun DashboardScreen(navController: NavController) {
             BottomNavigationBar(
                 navController = navController,
                 currentRoute = Routes.DASHBOARD,
-                bottomPadding = 18, // Adjust this value to move navbar up/down
-                navBarHeight = 80,   // Adjust this to change navbar height
-                regularIconSize = 32, // Size for regular nav icons
-                fabIconSize = 32,     // Size for the elevated FAB icon
-                fabSize = 64,          // Size of the entire FAB button
-                navBarWidth= 0.8f,      // Controls the width as a fraction (0.8f = 80% width)
-                horizontalPadding = 16   // Controls the horizontal margins
+                bottomPadding = 18,
+                navBarHeight = 80,
+                regularIconSize = 32,
+                fabIconSize = 32,
+                fabSize = 64,
+                navBarWidth = 0.8f,
+                horizontalPadding = 16
             )
         }
     ) { paddingValues ->
@@ -44,25 +63,178 @@ fun DashboardScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
+                .padding(paddingValues), // Apply scaffold padding
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // "LEARN" Text
             Text(
-                text = "Dashboard",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 32.dp)
+                text = "LEARN",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF737373), // This color matches the grey in the image
+                modifier = Modifier.padding(top = 20.dp, bottom = 40.dp)
             )
 
-            Text(
-                text = "This is the Dashboard screen where you can view your overview and statistics.",
-                fontSize = 16.sp,
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 32.dp)
+            // Placeholder image resources
+            val carouselImages = listOf(
+                R.drawable.sample_glioma_image, // Ensure these drawables exist
+                R.drawable.sample_glioma_image,
+                R.drawable.sample_glioma_image,
             )
+            val pagerState = rememberPagerState(initialPage = 0)
+
+            // Carousel / Horizontal Pager
+            HorizontalPager(
+                count = carouselImages.size,
+                state = pagerState,
+                contentPadding = PaddingValues(horizontal = 32.dp),
+                itemSpacing = 16.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
+            ) { page ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .background(Color.Transparent, RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background( Color(0xFF0B0B0B)) // This is the background of the box containing the border and content
+                            .padding(2.dp) // This creates the white border
+                            .background( Color(0xFF0B0B0B), RoundedCornerShape(16.dp)) // This is the actual white border and background for content
+                            .clip(RoundedCornerShape(16.dp))
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Image(
+                                painter = painterResource(id = carouselImages[page]),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                            )
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White)
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                                    .weight(0.3f),
+                                horizontalAlignment = Alignment.Start,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Glioma",
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_readmore),
+                                        contentDescription = "Go to details",
+                                        tint = Color.Black,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(30.dp)) // Space between pager and indicator
+
+            // Pager Indicator
+            HorizontalPagerIndicator(
+                pagerState = pagerState,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally),
+                activeColor = Color.White,
+                inactiveColor = Color.Gray,
+                indicatorWidth = 8.dp,
+                indicatorHeight = 8.dp,
+                spacing = 8.dp
+            )
+
+            // --- ADDED TEXTS BELOW PAGER INDICATOR ---
+            Spacer(modifier = Modifier.height(50.dp)) // Space after indicator before new texts
+
+            // "Our brain is one of the most important and complex parts of the human body."
+            Text(
+                text = buildAnnotatedString {
+                    append("Our brain is one of the most ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("important and complex parts of the human body.")
+                    }
+                },
+                fontSize = 20.sp, // Adjusted font size
+                fontWeight = FontWeight.SemiBold, // Adjust font weight as per image
+                color = Color.White,
+                textAlign = TextAlign.Center, // Centered text as in image
+                modifier = Modifier
+                    .fillMaxWidth(0.85f) // Adjust width to match image visually
+                    .padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp)) // Space between sentences
+
+            // "It controls how we think, feel, move, and live. That's why taking care of it isn't optional — it's essential."
+            Text(
+                text = buildAnnotatedString {
+                    append("It controls how we think, feel, move, and live. That's why taking care of it isn't optional — it's ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("essential.")
+                    }
+                },
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color(0xFFC0C0C0),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth(0.8f) // Adjust width
+                    .padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp)) // Space between sentences
+
+            // "NeuroView is here to help you stay informed and act early when it matters most."
+            Text(
+                text = "NeuroView is here to help you stay informed and act early when it matters most.",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color(0xFFC0C0C0),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth(0.8f) // Adjust width
+                    .padding(horizontal = 16.dp)
+            )
+
+            // The original dashboard texts are removed as they conflict with the new design.
+            // If you need them elsewhere, move them.
         }
     }
+}
+
+// Preview function for DashboardScreen
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview() {
+    // Mock NavController for preview
+    val mockNavController = rememberNavController()
+
+    DashboardScreen(navController = mockNavController)
 }

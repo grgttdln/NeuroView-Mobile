@@ -31,11 +31,7 @@ fun NeuroViewNavigation(navController: NavHostController) {
             DashboardScreen(navController = navController)
         }
         composable(Routes.UPLOAD_IMAGE) {
-            UploadImageScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
+            UploadImageScreen(navController = navController)
         }
         composable(Routes.DETAILS) {
             DetailsScreen(navController = navController)

@@ -28,12 +28,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.neuroview.R
+import com.example.neuroview.Routes
 import com.example.neuroview.components.TopAppBar
 import com.example.neuroview.ui.theme.NeuroViewTheme
 
 @Composable
-fun UploadImageScreen(onBackClick: () -> Unit = {}) {
+fun UploadImageScreen(navController: NavController) {
     val context = LocalContext.current
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -80,7 +83,11 @@ fun UploadImageScreen(onBackClick: () -> Unit = {}) {
                         color = Color(0xFF737373)
                     )
                     IconButton(
-                        onClick = { onBackClick() },
+                        onClick = {
+                            navController.navigate(Routes.DASHBOARD) {
+                                popUpTo(Routes.DASHBOARD) { inclusive = false }
+                            }
+                        },
                         modifier = Modifier.align(Alignment.CenterStart)
                     ) {
                         Icon(
@@ -227,6 +234,6 @@ fun ImageInfoBox(uri: Uri, onDelete: () -> Unit) {
 @Composable
 fun UploadImageScreenPreview() {
     NeuroViewTheme {
-        UploadImageScreen()
+        UploadImageScreen(rememberNavController())
     }
 }
