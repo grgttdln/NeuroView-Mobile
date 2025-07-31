@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.neuroview.screens.DashboardScreen
-import com.example.neuroview.screens.DetailsScreen
 import com.example.neuroview.screens.HomeScreen
 import com.example.neuroview.screens.PastRecordsScreen
 import com.example.neuroview.screens.UploadImageScreen
@@ -40,9 +39,6 @@ fun NeuroViewNavigation(navController: NavHostController) {
         }
         composable(Routes.UPLOAD_IMAGE) {
             UploadImageScreen(navController = navController)
-        }
-        composable(Routes.DETAILS) {
-            DetailsScreen(navController = navController)
         }
         composable(Routes.PAST_RECORDS) {
             PastRecordsScreen(navController = navController)

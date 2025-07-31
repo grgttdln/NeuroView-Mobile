@@ -61,6 +61,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("com.google.accompanist:accompanist-pager:0.28.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
+    implementation("io.coil-kt:coil-compose:2.4.0")
     
     // Ktor dependencies
     implementation(libs.ktor.client.core)

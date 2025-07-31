@@ -45,11 +45,24 @@ data class ImageData(
     val id: String,
     val name: String,
     val url: String,
-    val uploaded_at: String
+    val uploaded_at: String,
+    val information: PredictionData? = null // Add information field for past records
 )
 
+@Serializable
+data class PastRecordsResponse(
+    val count: Int,
+    val data: List<ImageData>,
+    val message: String,
+    val success: Boolean
+)
+
+
 class ApiService {
-    private val baseUrl = "http://192.168.1.4:5001/api/auto"
+    // Make sure this baseUrl is correct for fetching all records.
+    // Based on the JSON, it looks like it might be the same endpoint used for uploads,
+    // but without any specific ID or file. You might need to confirm this with your backend.
+    private val baseUrl = "http://192.168.93.7:5001/api/auto" // Assuming this endpoint fetches all records with a GET request
 
     private val client = HttpClient(Android) {
         install(ContentNegotiation) {
@@ -83,7 +96,7 @@ class ApiService {
     suspend fun uploadImage(context: Context, imageUri: Uri, imageName: String): Result<ApiResponse> {
         return try {
             println("NeuroView: Starting image upload to $baseUrl")
-            
+
             val inputStream = context.contentResolver.openInputStream(imageUri)
             val imageBytes = inputStream?.use { input ->
                 val outputStream = ByteArrayOutputStream()
@@ -95,7 +108,7 @@ class ApiService {
 
             val fileName = imageName.ifBlank { "image.jpg" }
             val mimeType = context.contentResolver.getType(imageUri) ?: "image/jpeg"
-            
+
             println("NeuroView: Uploading file: $fileName, type: $mimeType")
 
             val response: HttpResponse = client.submitFormWithBinaryData(
@@ -115,16 +128,16 @@ class ApiService {
                 HttpStatusCode.OK, HttpStatusCode.Created -> {
                     val responseText = response.bodyAsText()
                     println("NeuroView: Response body: $responseText")
-                    
+
                     val jsonResponse = Json { ignoreUnknownKeys = true }.decodeFromString<ApiResponse>(responseText)
                     println("NeuroView: Parsed response: $jsonResponse")
-                    
+
                     if (jsonResponse.prediction == null) {
                         println("NeuroView: Warning - No prediction data in response")
                     } else {
                         println("NeuroView: Prediction success: ${jsonResponse.prediction?.success}")
                     }
-                    
+
                     Result.success(jsonResponse)
                 }
                 else -> {
@@ -135,6 +148,33 @@ class ApiService {
             }
         } catch (e: Exception) {
             println("NeuroView: Upload exception: ${e.message}")
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getPastRecords(): Result<PastRecordsResponse> {
+        return try {
+            println("NeuroView: Fetching past records from $baseUrl")
+            val response: HttpResponse = client.get(baseUrl) // Assuming GET to baseUrl fetches all records
+
+            println("NeuroView: Past Records Response status: ${response.status}")
+
+            when (response.status) {
+                HttpStatusCode.OK -> {
+                    val responseText = response.bodyAsText()
+                    println("NeuroView: Past Records Response body: $responseText")
+                    val pastRecordsResponse = Json { ignoreUnknownKeys = true }.decodeFromString<PastRecordsResponse>(responseText)
+                    Result.success(pastRecordsResponse)
+                }
+                else -> {
+                    val errorBody = response.bodyAsText()
+                    println("NeuroView: Past Records Error response: $errorBody")
+                    Result.failure(Exception("Server returned ${response.status.value}: $errorBody"))
+                }
+            }
+        } catch (e: Exception) {
+            println("NeuroView: Fetching past records exception: ${e.message}")
             e.printStackTrace()
             Result.failure(e)
         }
