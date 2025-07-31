@@ -28,10 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.neuroview.R
-import com.example.neuroview.Routes
 import com.example.neuroview.components.TopAppBar
 import com.example.neuroview.network.ApiService
 import com.example.neuroview.ui.theme.NeuroViewTheme
@@ -41,7 +38,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Composable
-fun UploadImageScreen(navController: NavController) {
+fun UploadImageScreen(
+    paddingValues: PaddingValues,
+    onNavigateToHome: () -> Unit,
+    onNavigateToDashboard: () -> Unit,
+    onNavigateToPastRecords: () -> Unit,
+    onNavigateToResult: (String, String) -> Unit
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -66,15 +69,15 @@ fun UploadImageScreen(navController: NavController) {
                 titleFontSize = 28
             )
         }
-    ) { paddingValues ->
+    ) { innerPaddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(paddingValues) // Apply outer padding from Activity
+                .padding(innerPaddingValues) // Apply inner padding from Scaffold
+                .padding(16.dp)
+            ,horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -92,9 +95,7 @@ fun UploadImageScreen(navController: NavController) {
                     )
                     IconButton(
                         onClick = {
-                            navController.navigate(Routes.DASHBOARD) {
-                                popUpTo(Routes.DASHBOARD) { inclusive = false }
-                            }
+                            onNavigateToDashboard()
                         },
                         modifier = Modifier.align(Alignment.CenterStart)
                     ) {
@@ -114,9 +115,12 @@ fun UploadImageScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            DashedBorderBox(onClick = {
-                imagePickerLauncher.launch("image/*")
-            })
+            DashedBorderBox(
+                onClick = {
+                    imagePickerLauncher.launch("image/*")
+                },
+                hasSelectedImage = selectedImageUri != null // Pass whether image is selected
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -158,7 +162,7 @@ fun UploadImageScreen(navController: NavController) {
                                                 val encodedImageUri = URLEncoder.encode(imageUriString, "UTF-8")
                                                 println("NeuroView: Image URI: $imageUriString")
                                                 
-                                                navController.navigate("result?predictionJson=$encodedJson&imageUri=$encodedImageUri")
+                                                onNavigateToResult(encodedJson, encodedImageUri)
                                                 selectedImageUri = null
 
                                                 if (response.prediction.success) {
@@ -170,7 +174,7 @@ fun UploadImageScreen(navController: NavController) {
                                                 // Fallback to basic result screen if JSON encoding fails
                                                 val imageUriString = uri.toString()
                                                 val encodedImageUri = URLEncoder.encode(imageUriString, "UTF-8")
-                                                navController.navigate("result?imageUri=$encodedImageUri")
+                                                onNavigateToResult("", encodedImageUri)
                                                 selectedImageUri = null
                                                 Toast.makeText(context, "Analysis completed, but display issues occurred", Toast.LENGTH_LONG).show()
                                             }
@@ -179,7 +183,7 @@ fun UploadImageScreen(navController: NavController) {
                                             val imageUriString = uri.toString()
                                             val encodedImageUri = URLEncoder.encode(imageUriString, "UTF-8")
                                             Toast.makeText(context, "Upload successful, but analysis failed: $errorMsg", Toast.LENGTH_LONG).show()
-                                            navController.navigate("result?imageUri=$encodedImageUri")
+                                            onNavigateToResult("", encodedImageUri)
                                             selectedImageUri = null
                                         }
                                     },
@@ -211,14 +215,18 @@ fun UploadImageScreen(navController: NavController) {
                     Text("Upload & Start Analysis", color = Color.Black)
                 }
             }
+
+            // Add extra bottom spacing to ensure button is visible
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
-fun DashedBorderBox(onClick: () -> Unit) {
+fun DashedBorderBox(onClick: () -> Unit, hasSelectedImage: Boolean) {
     val cornerRadius = 12.dp
-    val boxHeight = 550.dp
+    // Reduce height significantly when image is selected to make room for the button
+    val boxHeight = if (hasSelectedImage) 500.dp else 550.dp
 
     Box(
         modifier = Modifier
@@ -252,26 +260,38 @@ fun DashedBorderBox(onClick: () -> Unit) {
                 painter = painterResource(id = R.drawable.ic_cloud_upload),
                 contentDescription = "Upload Icon",
                 tint = Color.White,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(if (hasSelectedImage) 40.dp else 48.dp) // Smaller icon when image selected
             )
-            Text(
-                text = "Browse Files",
-                fontSize = 16.sp,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Supported Formats: JPEG, PNG",
-                fontSize = 12.sp,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = "Upload Limit: 1 image file only.",
-                fontSize = 12.sp,
-                color = Color.White
-            )
+
+            if (hasSelectedImage) {
+                // Compact text when image is selected
+                Text(
+                    text = "Tap to change image",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
+                )
+            } else {
+                // Full text when no image selected
+                Text(
+                    text = "Browse Files",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Supported Formats: JPEG, PNG",
+                    fontSize = 12.sp,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Upload Limit: 1 image file only.",
+                    fontSize = 12.sp,
+                    color = Color.White
+                )
+            }
         }
     }
 }
@@ -325,6 +345,13 @@ fun ImageInfoBox(uri: Uri, onDelete: () -> Unit) {
 @Composable
 fun UploadImageScreenPreview() {
     NeuroViewTheme {
-        UploadImageScreen(rememberNavController())
+        // Preview with dummy navigation callbacks
+        UploadImageScreen(
+            paddingValues = PaddingValues(0.dp),
+            onNavigateToHome = {},
+            onNavigateToDashboard = {},
+            onNavigateToPastRecords = {},
+            onNavigateToResult = { _, _ -> }
+        )
     }
 }

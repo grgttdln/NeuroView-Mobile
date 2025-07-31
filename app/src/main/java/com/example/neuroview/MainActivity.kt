@@ -1,5 +1,6 @@
 package com.example.neuroview
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,22 +8,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.rememberNavController
+import com.example.neuroview.activities.HomeActivity
 import com.example.neuroview.ui.theme.NeuroViewTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            NeuroViewTheme {
-                val navController = rememberNavController()
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    NeuroViewNavigation(
-                        navController = navController
-                    )
-                }
-            }
-        }
+
+        // Navigate to HomeActivity as the starting point
+        startActivity(Intent(this, HomeActivity::class.java))
+        finish() // Close MainActivity since we're using separate activities
     }
 }

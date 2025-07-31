@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.neuroview.Routes
 import com.example.neuroview.components.BottomNavigationBar
 import com.example.neuroview.components.TopAppBar
 import com.example.neuroview.network.PredictionData
@@ -32,9 +31,13 @@ import java.net.URLDecoder
 
 @Composable
 fun ResultScreen(
-    navController: NavController,
     predictionJson: String? = null,
-    imageUri: String? = null
+    imageUri: String? = null,
+    paddingValues: PaddingValues,
+    onNavigateToHome: () -> Unit,
+    onNavigateToDashboard: () -> Unit,
+    onNavigateToUpload: () -> Unit,
+    onNavigateToPastRecords: () -> Unit
 ) {
 
     val predictionData = remember(predictionJson) {
@@ -49,14 +52,9 @@ fun ResultScreen(
                         println("NeuroView: JSON appears to be already decoded")
                         json
                     }
-                    json.startsWith("%7B") -> {
-                        // URL encoded JSON
-                        println("NeuroView: JSON appears to be URL encoded")
-                        URLDecoder.decode(json, "UTF-8")
-                    }
                     else -> {
-                        // Try decoding anyway
-                        println("NeuroView: Attempting to decode JSON")
+                        // URL encoded JSON, decode it
+                        println("NeuroView: Decoding URL encoded JSON")
                         URLDecoder.decode(json, "UTF-8")
                     }
                 }
@@ -68,12 +66,9 @@ fun ResultScreen(
                     isLenient = true
                     coerceInputValues = true
                 }
-                val result = jsonParser.decodeFromString<PredictionData>(decodedJson)
-                println("NeuroView: Successfully parsed prediction data: $result")
-                result
+                jsonParser.decodeFromString<PredictionData>(decodedJson)
             } catch (e: Exception) {
-                println("NeuroView: Failed to parse JSON: ${e.message}")
-                println("NeuroView: Exception type: ${e.javaClass.simpleName}")
+                println("NeuroView: Error parsing prediction data: ${e.message}")
                 e.printStackTrace()
                 null
             }
@@ -105,8 +100,11 @@ fun ResultScreen(
         },
         bottomBar = {
             BottomNavigationBar(
-                navController = navController,
-                currentRoute = Routes.RESULT,
+                currentRoute = "result",
+                onNavigateToHome = onNavigateToHome,
+                onNavigateToDashboard = onNavigateToDashboard,
+                onNavigateToUpload = onNavigateToUpload,
+                onNavigateToPastRecords = onNavigateToPastRecords,
                 bottomPadding = 18,
                 navBarHeight = 80,
                 regularIconSize = 32,
@@ -116,12 +114,13 @@ fun ResultScreen(
                 horizontalPadding = 16
             )
         }
-    ) { paddingValues ->
+    ) { innerPaddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(paddingValues)
+                .padding(paddingValues) // Apply outer padding from Activity
+                .padding(innerPaddingValues) // Apply inner padding from Scaffold
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -551,12 +550,15 @@ fun getInsightsForTumorType(tumorType: String, confidence: Double): List<String>
 @Preview(showBackground = true)
 @Composable
 fun ResultScreenPreview() {
-    val mockNavController = rememberNavController()
     MaterialTheme {
         ResultScreen(
-            navController = mockNavController,
             predictionJson = null,
-            imageUri = null
+            imageUri = null,
+            paddingValues = PaddingValues(0.dp),
+            onNavigateToHome = {},
+            onNavigateToDashboard = {},
+            onNavigateToUpload = {},
+            onNavigateToPastRecords = {}
         )
     }
 }

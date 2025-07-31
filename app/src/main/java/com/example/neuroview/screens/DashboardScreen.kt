@@ -21,9 +21,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.neuroview.Routes
 import com.example.neuroview.components.BottomNavigationBar
 import com.example.neuroview.components.TopAppBar
 import com.example.neuroview.R // Make sure R is imported to access drawables
@@ -37,7 +34,13 @@ import com.google.accompanist.pager.HorizontalPagerIndicator
 
 @OptIn(ExperimentalPagerApi::class) // Needed for Accompanist Pager
 @Composable
-fun DashboardScreen(navController: NavController) {
+fun DashboardScreen(
+    paddingValues: PaddingValues,
+    onNavigateToHome: () -> Unit,
+    onNavigateToUpload: () -> Unit,
+    onNavigateToPastRecords: () -> Unit,
+    onNavigateToTumorDetail: (String) -> Unit
+) {
     // Get tumor data
     val tumors = TumorData.getAllTumors()
 
@@ -52,8 +55,11 @@ fun DashboardScreen(navController: NavController) {
         },
         bottomBar = {
             BottomNavigationBar(
-                navController = navController,
-                currentRoute = Routes.DASHBOARD,
+                currentRoute = "dashboard",
+                onNavigateToHome = onNavigateToHome,
+                onNavigateToDashboard = { /* Already on dashboard */ },
+                onNavigateToUpload = onNavigateToUpload,
+                onNavigateToPastRecords = onNavigateToPastRecords,
                 bottomPadding = 18,
                 navBarHeight = 80,
                 regularIconSize = 32,
@@ -63,12 +69,13 @@ fun DashboardScreen(navController: NavController) {
                 horizontalPadding = 16
             )
         }
-    ) { paddingValues ->
+    ) { innerPaddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(paddingValues), // Apply scaffold padding
+                .padding(paddingValues) // Apply outer padding from Activity
+                .padding(innerPaddingValues), // Apply inner padding from Scaffold
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // "LEARN" Text
@@ -100,7 +107,7 @@ fun DashboardScreen(navController: NavController) {
                         .aspectRatio(1f)
                         .background(Color.Transparent, RoundedCornerShape(16.dp))
                         .clickable {
-                            navController.navigate(Routes.tumorDetail(tumor.name))
+                            onNavigateToTumorDetail(tumor.name)
                         },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -222,8 +229,11 @@ fun DashboardScreen(navController: NavController) {
 @Preview(showBackground = true)
 @Composable
 fun DashboardScreenPreview() {
-    // Mock NavController for preview
-    val mockNavController = rememberNavController()
-
-    DashboardScreen(navController = mockNavController)
+    DashboardScreen(
+        paddingValues = PaddingValues(0.dp),
+        onNavigateToHome = {},
+        onNavigateToUpload = {},
+        onNavigateToPastRecords = {},
+        onNavigateToTumorDetail = {}
+    )
 }

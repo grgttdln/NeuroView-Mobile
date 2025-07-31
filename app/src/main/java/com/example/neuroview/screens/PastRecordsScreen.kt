@@ -19,9 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.neuroview.Routes
 import com.example.neuroview.components.BottomNavigationBar
 import com.example.neuroview.components.TopAppBar
 import com.example.neuroview.network.ApiService
@@ -36,7 +34,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Composable
-fun PastRecordsScreen(navController: NavController) {
+fun PastRecordsScreen(
+    paddingValues: PaddingValues,
+    onNavigateToHome: () -> Unit,
+    onNavigateToDashboard: () -> Unit,
+    onNavigateToUpload: () -> Unit,
+    onNavigateToResult: (String, String) -> Unit
+) {
     val apiService = remember { ApiService() }
     var pastRecords by remember { mutableStateOf<List<ImageData>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -52,6 +56,24 @@ fun PastRecordsScreen(navController: NavController) {
             result.onSuccess { response ->
                 pastRecords = response.data
                 errorMessage = null
+
+                // Debug logging to see what data we're getting
+                println("NeuroView: Fetched ${response.data.size} records")
+                response.data.forEachIndexed { index, record ->
+                    println("NeuroView: Record $index:")
+                    println("  - ID: ${record.id}")
+                    println("  - Name: ${record.name}")
+                    println("  - URL: ${record.url}")
+                    println("  - Uploaded: ${record.uploaded_at}")
+                    println("  - Information: ${record.information}")
+                    if (record.information != null) {
+                        println("    - Tumor Type: ${record.information.tumor_type}")
+                        println("    - Confidence: ${record.information.confidence}")
+                        println("    - Success: ${record.information.success}")
+                    } else {
+                        println("    - Information is NULL")
+                    }
+                }
             }.onFailure { e ->
                 errorMessage = "Failed to fetch records: ${e.message}"
                 pastRecords = emptyList()
@@ -70,8 +92,11 @@ fun PastRecordsScreen(navController: NavController) {
         },
         bottomBar = {
             BottomNavigationBar(
-                navController = navController,
-                currentRoute = Routes.PAST_RECORDS,
+                currentRoute = "past_records",
+                onNavigateToHome = onNavigateToHome,
+                onNavigateToDashboard = onNavigateToDashboard,
+                onNavigateToUpload = onNavigateToUpload,
+                onNavigateToPastRecords = { /* Already on this screen */ },
                 bottomPadding = 18,
                 navBarHeight = 80,
                 regularIconSize = 32,
@@ -81,12 +106,13 @@ fun PastRecordsScreen(navController: NavController) {
                 horizontalPadding = 16
             )
         }
-    ) { paddingValues ->
+    ) { innerPaddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(paddingValues)
+                .padding(paddingValues) // Apply outer padding from Activity
+                .padding(innerPaddingValues) // Apply inner padding from Scaffold
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -230,10 +256,7 @@ fun PastRecordsScreen(navController: NavController) {
                                                             isLenient = true
                                                         }
                                                         val predictionJson = json.encodeToString(predictionInfo)
-                                                        val encodedPredictionJson = URLEncoder.encode(predictionJson, StandardCharsets.UTF_8.toString())
-                                                        val encodedImageUri = URLEncoder.encode(clickedRecord.url, StandardCharsets.UTF_8.toString())
-
-                                                        navController.navigate("result?predictionJson=$encodedPredictionJson&imageUri=$encodedImageUri")
+                                                        onNavigateToResult(predictionJson, clickedRecord.url)
                                                     } catch (e: Exception) {
                                                         println("NeuroView: Failed to encode data for navigation: ${e.message}")
                                                     }
@@ -314,17 +337,31 @@ fun RecordCard(record: ImageData, onCardClick: (ImageData) -> Unit) {
             }
 
             // Text elements
+            val tumorType = record.information?.tumor_type?.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            } ?: run {
+                // Fallback: Show "Analysis Pending" instead of N/A for missing predictions
+                "Analysis Pending"
+            }
+
             Text(
-                text = record.information?.tumor_type?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } ?: "N/A",
-                color = Color.White,
+                text = tumorType,
+                color = if (tumorType == "Analysis Pending") Color.Gray else Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
+            val confidenceText = record.information?.confidence?.let {
+                "%.2f".format(it * 100) + "%"
+            } ?: run {
+                // Show different message instead of N/A
+                if (record.information == null) "Pending" else "N/A"
+            }
+
             Text(
-                text = record.information?.confidence?.let { "%.2f".format(it * 100) + "%" } ?: "N/A",
+                text = confidenceText,
                 color = Color.LightGray,
                 fontSize = 12.sp
             )

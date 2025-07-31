@@ -21,16 +21,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.neuroview.R // Assuming your resources are in the 'R' class
-import com.example.neuroview.Routes
 import com.example.neuroview.data.TumorData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TumorDetailScreen(
-    navController: NavController,
-    tumorName: String?
+    tumorName: String?,
+    paddingValues: PaddingValues,
+    onNavigateToHome: () -> Unit,
+    onNavigateToDashboard: () -> Unit,
+    onNavigateToUpload: () -> Unit,
+    onNavigateToPastRecords: () -> Unit
 ) {
     val tumor = tumorName?.let { TumorData.getTumorByName(it) }
 
@@ -39,7 +41,8 @@ fun TumorDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black),
+                .background(Color.Black)
+                .padding(paddingValues), // Apply padding values here
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -52,7 +55,7 @@ fun TumorDetailScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    onClick = { navController.navigate(Routes.DASHBOARD) },
+                    onClick = { onNavigateToDashboard() },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White)
                 ) {
                     Text("Back to Dashboard", color = Color.Black)
@@ -68,15 +71,15 @@ fun TumorDetailScreen(
                 title = {
                     Text(
                         text = "LEARN",
-                        fontSize = 18.sp, // Adjusted font size as per previous attempt, maintain for consistency
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF737373),
-                        modifier = Modifier.fillMaxWidth(), // Fill width to allow centering
-                        textAlign = TextAlign.Center // Center the text within the available space
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { onNavigateToDashboard() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -85,14 +88,12 @@ fun TumorDetailScreen(
                     }
                 },
                 actions = {
-                    // Add an invisible icon to balance the space taken by the navigation icon
-                    // This creates a symmetrical layout for the title to truly center
                     IconButton(onClick = { /* Do nothing, this is just for spacing */ }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, // Use the same icon for size consistency
-                            contentDescription = null, // No content description needed for an invisible icon
-                            tint = Color.Transparent, // Make it invisible
-                            modifier = Modifier.graphicsLayer(alpha = 0f) // Ensure it's fully transparent
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            tint = Color.Transparent,
+                            modifier = Modifier.graphicsLayer(alpha = 0f)
                         )
                     }
                 },
@@ -101,14 +102,15 @@ fun TumorDetailScreen(
                 )
             )
         }
-    ) { paddingValues ->
+    ) { innerPaddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(paddingValues)
+                .padding(paddingValues) // Apply outer padding from Activity
+                .padding(innerPaddingValues) // Apply inner padding from Scaffold
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp) // Adjusted horizontal padding
+                .padding(horizontal = 14.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp)) // Spacer to push content down from top bar
 

@@ -14,8 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.neuroview.Routes
 import com.example.neuroview.R
 
 
@@ -28,8 +26,11 @@ data class BottomNavItem(
 
 @Composable
 fun BottomNavigationBar(
-    navController: NavController,
     currentRoute: String?,
+    onNavigateToHome: () -> Unit,
+    onNavigateToDashboard: () -> Unit,
+    onNavigateToUpload: () -> Unit,
+    onNavigateToPastRecords: () -> Unit,
     bottomPadding: Int = 16,
     navBarHeight: Int = 80,
     regularIconSize: Int = 32,
@@ -39,9 +40,9 @@ fun BottomNavigationBar(
     horizontalPadding: Int = 16
 ) {
     val items = listOf(
-        BottomNavItem(Routes.DASHBOARD, R.drawable.ic_home, R.drawable.ic_home_filled),
-        BottomNavItem(Routes.UPLOAD_IMAGE, R.drawable.ic_cloud_upload, R.drawable.ic_cloud_upload, isCentralButton = true),
-        BottomNavItem(Routes.PAST_RECORDS, R.drawable.ic_folder, R.drawable.ic_folder_filled)
+        BottomNavItem("dashboard", R.drawable.ic_home, R.drawable.ic_home_filled),
+        BottomNavItem("upload_image", R.drawable.ic_cloud_upload, R.drawable.ic_cloud_upload, isCentralButton = true),
+        BottomNavItem("past_records", R.drawable.ic_folder, R.drawable.ic_folder_filled)
     )
 
     Box(
@@ -84,14 +85,7 @@ fun BottomNavigationBar(
                         iconSize = fabIconSize,
                         onClick = {
                             if (currentRoute != item.route) {
-                                navController.navigate(item.route) {
-                                    // Only pop up to the current screen and replace it
-                                    popUpTo(currentRoute ?: Routes.DASHBOARD) { 
-                                        inclusive = true 
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                                onNavigateToUpload()
                             }
                         }
                     )
@@ -104,13 +98,9 @@ fun BottomNavigationBar(
                         iconSize = regularIconSize,
                         onClick = {
                             if (currentRoute != item.route) {
-                                navController.navigate(item.route) {
-                                    // Only pop up to the current screen and replace it
-                                    popUpTo(currentRoute ?: Routes.DASHBOARD) {
-                                        inclusive = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                when (item.route) {
+                                    "dashboard" -> onNavigateToDashboard()
+                                    "past_records" -> onNavigateToPastRecords()
                                 }
                             }
                         },

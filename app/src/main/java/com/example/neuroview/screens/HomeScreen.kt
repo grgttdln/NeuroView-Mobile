@@ -11,8 +11,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import com.example.neuroview.Routes
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -21,7 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.neuroview.ui.theme.NeuroViewTheme
 
 @Composable
-fun HomeScreen(navController: NavController? = null) {
+fun HomeScreen(
+    paddingValues: PaddingValues,
+    onNavigateToDashboard: () -> Unit,
+    onNavigateToUpload: () -> Unit,
+    onNavigateToPastRecords: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -29,6 +32,7 @@ fun HomeScreen(navController: NavController? = null) {
                 painter = painterResource(id = R.drawable.home),
                 contentScale = ContentScale.Crop
             )
+            .padding(paddingValues) // Apply the padding values here
             .padding(24.dp)
     ) {
         Image(
@@ -50,38 +54,33 @@ fun HomeScreen(navController: NavController? = null) {
                 text = "Welcome to",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 4.dp)
             )
-
             Text(
                 text = "NeuroView",
-                style = MaterialTheme.typography.displayLarge,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
                 color = Color.White,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-
             Text(
-                text = "Smart MRI analysis. Fast results. Anywhere you need it.",
-                style = MaterialTheme.typography.bodyLarge,
+                text = "Revolutionizing brain tumor diagnosis with advanced AI technology for faster, more accurate results.",
+                style = MaterialTheme.typography.bodyMedium,
                 color = Color.White,
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(bottom = 32.dp)
             )
 
             Button(
-                onClick = {
-                    navController?.navigate(Routes.DASHBOARD)
-                },
-                modifier = Modifier
-                    .fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                ),
-                shape = RoundedCornerShape(12.dp),
-                            ) {
+                onClick = { onNavigateToDashboard() },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
                     text = "Get Started",
-                    style = MaterialTheme.typography.labelLarge
+                    color = Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -92,6 +91,11 @@ fun HomeScreen(navController: NavController? = null) {
 @Composable
 fun HomeScreenPreview() {
     NeuroViewTheme {
-        HomeScreen()
+        HomeScreen(
+            paddingValues = PaddingValues(0.dp),
+            onNavigateToDashboard = {},
+            onNavigateToUpload = {},
+            onNavigateToPastRecords = {}
+        )
     }
 }
