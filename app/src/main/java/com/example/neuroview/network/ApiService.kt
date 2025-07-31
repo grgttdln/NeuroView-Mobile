@@ -49,7 +49,7 @@ data class ImageData(
 )
 
 class ApiService {
-    private val baseUrl = "http://192.168.93.7:5001/api/auto"
+    private val baseUrl = "http://192.168.1.4:5001/api/auto"
 
     private val client = HttpClient(Android) {
         install(ContentNegotiation) {
@@ -57,19 +57,6 @@ class ApiService {
                 ignoreUnknownKeys = true
                 isLenient = true
             })
-        }
-    }
-
-    // Helper function to test API connectivity
-    suspend fun testConnection(): Result<String> {
-        return try {
-            val response: HttpResponse = client.get(baseUrl.replace("/api/auto", "/health"))
-            when (response.status) {
-                HttpStatusCode.OK -> Result.success("Connected successfully")
-                else -> Result.failure(Exception("Server not responding: ${response.status.value}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(Exception("Cannot connect to server: ${e.message}"))
         }
     }
 

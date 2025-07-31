@@ -127,15 +127,15 @@ fun ResultScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "ANALYSIS RESULTS",
+                text = "RESULT",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF737373),
                 textAlign = TextAlign.Center
             )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
+            
+            Spacer(modifier = Modifier.height(2.dp))
+            
             if (predictionData != null && predictionData.success) {
                 PredictionResultContent(
                     predictionData = predictionData,
@@ -169,53 +169,36 @@ fun PredictionResultContent(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A)),
-        shape = RoundedCornerShape(12.dp)
+            .padding(vertical = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Black)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Predicted Diagnosis",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF737373),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = tumorType.uppercase(),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = getTumorTypeColor(tumorType),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Confidence: ${(confidence * 100).toInt()}%",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.White,
-                textAlign = TextAlign.Center
-            )
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = tumorType.replaceFirstChar { it.uppercase() },
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 
-    Spacer(modifier = Modifier.height(24.dp))
+    Spacer(modifier = Modifier.height(8.dp))
 
-    // Input image display
     imageUri?.let { uri ->
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A)),
+            colors = CardDefaults.cardColors(containerColor = Color.Black),
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(
@@ -223,7 +206,7 @@ fun PredictionResultContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Input Image",
+                    text = "INPUT IMAGE",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF737373),
@@ -247,136 +230,112 @@ fun PredictionResultContent(
         Spacer(modifier = Modifier.height(24.dp))
     }
 
-    // Confidence score bar
-    ConfidenceScoreBar(confidence = confidence)
-
-    Spacer(modifier = Modifier.height(24.dp))
-
     // Class probabilities
     if (classProbs.isNotEmpty()) {
-        Text(
-            text = "Class Probabilities",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF737373),
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        classProbs.toList().sortedByDescending { it.second }.forEach { (className, probability) ->
-            ProbabilityBar(
-                className = className,
-                probability = probability
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "CONFIDENCE SCORES",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF737373),
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            classProbs.toList().sortedByDescending { it.second }
+                .forEachIndexed { index, (className, probability) ->
+                    ProbabilityBar(
+                        className = className,
+                        probability = probability
+                    )
+                    if (index < classProbs.size - 1) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
         }
     }
 
-    Spacer(modifier = Modifier.height(24.dp))
+    Spacer(modifier = Modifier.height(32.dp))
 
     // Insights section
     InsightsSection(tumorType = tumorType, confidence = confidence)
+
+    Spacer(modifier = Modifier.height(32.dp))
 }
 
-@Composable
-fun ConfidenceScoreBar(confidence: Double) {
-    Column {
-        Text(
-            text = "Confidence Score",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF737373)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(24.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF2A2A2A))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(confidence.toFloat())
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(getConfidenceColor(confidence))
-            )
-
-            Text(
-                text = "${(confidence * 100).toInt()}%",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-    }
-}
 
 @Composable
 fun ProbabilityBar(className: String, probability: Double) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = className.uppercase(),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.White,
-            modifier = Modifier.width(100.dp)
-        )
+    Column(modifier = Modifier.fillMaxWidth()) {
 
-        Spacer(modifier = Modifier.width(12.dp))
 
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(20.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFF2A2A2A))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                text = className.uppercase(),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White,
+                modifier = Modifier.width(100.dp)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
             Box(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(probability.toFloat())
+                    .weight(1f)
+                    .height(20.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(getTumorTypeColor(className))
+                    .background(Color(0xFF2A2A2A))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(probability.toFloat())
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.White)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                text = "${(probability * 100).toInt()}%",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF737373),
+                modifier = Modifier.width(40.dp)
             )
         }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Text(
-            text = "${(probability * 100).toInt()}%",
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF737373),
-            modifier = Modifier.width(40.dp)
-        )
     }
 }
+
 
 @Composable
 fun InsightsSection(tumorType: String, confidence: Double) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A)),
+        colors = CardDefaults.cardColors(containerColor = Color.Black),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Clinical Insights",
+                text = "INSIGHTS",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF737373)
+                color = Color(0xFF737373),
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -384,28 +343,20 @@ fun InsightsSection(tumorType: String, confidence: Double) {
             val insights = getInsightsForTumorType(tumorType, confidence)
             insights.forEach { insight ->
                 Text(
-                    text = "• $insight",
+                    text = insight,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     color = Color.White,
-                    lineHeight = 20.sp
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "⚠️ This is an AI analysis tool for educational purposes. Always consult qualified medical professionals for diagnosis and treatment.",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color(0xFFFFAA00),
-                lineHeight = 16.sp,
-                textAlign = TextAlign.Center
-            )
         }
     }
 }
+
 
 @Composable
 fun NoResultContent(
@@ -559,23 +510,7 @@ fun NoResultContent(
     }
 }
 
-fun getTumorTypeColor(tumorType: String): Color {
-    return when (tumorType.lowercase()) {
-        "glioma" -> Color(0xFFFF5722)
-        "meningioma" -> Color(0xFF9C27B0)
-        "pituitary" -> Color(0xFF2196F3)
-        "notumor" -> Color(0xFF4CAF50)
-        else -> Color(0xFF757575)
-    }
-}
 
-fun getConfidenceColor(confidence: Double): Color {
-    return when {
-        confidence >= 0.8 -> Color(0xFF4CAF50)
-        confidence >= 0.6 -> Color(0xFFFFAA00)
-        else -> Color(0xFFFF5722)
-    }
-}
 
 fun getInsightsForTumorType(tumorType: String, confidence: Double): List<String> {
     val baseInsights = when (tumorType.lowercase()) {
