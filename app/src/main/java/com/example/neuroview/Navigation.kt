@@ -16,6 +16,7 @@ object Routes {
     const val UPLOAD_IMAGE = "upload_image"
     const val DETAILS = "details"
     const val PAST_RECORDS = "past_records"
+    const val RESULT = "result"
 }
 
 @Composable
@@ -38,6 +39,9 @@ fun NeuroViewNavigation(navController: NavHostController) {
         }
         composable(Routes.PAST_RECORDS) {
             PastRecordsScreen(navController = navController)
+        }
+        composable(Routes.RESULT) {
+            com.example.neuroview.screens.ResultScreen(navController = navController)
         }
     }
 }

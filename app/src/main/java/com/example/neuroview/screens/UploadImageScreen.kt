@@ -33,12 +33,17 @@ import androidx.navigation.compose.rememberNavController
 import com.example.neuroview.R
 import com.example.neuroview.Routes
 import com.example.neuroview.components.TopAppBar
+import com.example.neuroview.network.ApiService
 import com.example.neuroview.ui.theme.NeuroViewTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun UploadImageScreen(navController: NavController) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val apiService = remember { ApiService() }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -113,12 +118,59 @@ fun UploadImageScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { /* Start analysis */ },
+                onClick = {
+                    selectedImageUri?.let { uri ->
+                        // Get the file name from the URI
+                        val fileName = run {
+                            var name = "Unknown Image"
+                            val cursor = context.contentResolver.query(uri, null, null, null, null)
+                            cursor?.use {
+                                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                                if (it.moveToFirst() && nameIndex != -1) {
+                                    name = it.getString(nameIndex)
+                                }
+                            }
+                            name
+                        }
+
+                        isLoading = true
+                        coroutineScope.launch {
+                            try {
+                                // Use the new uploadImage method instead of createImage
+                                val result = apiService.uploadImage(context, uri, fileName)
+                                result.fold(
+                                    onSuccess = { response ->
+                                        Toast.makeText(context, "Image uploaded successfully!", Toast.LENGTH_SHORT).show()
+                                        selectedImageUri = null
+                                        navController.navigate(com.example.neuroview.Routes.RESULT)
+                                    },
+                                    onFailure = { error ->
+                                        Toast.makeText(context, "Error: ${error.message}", Toast.LENGTH_LONG).show()
+                                    }
+                                )
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Network error: ${e.message}", Toast.LENGTH_LONG).show()
+                            } finally {
+                                isLoading = false
+                            }
+                        }
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = selectedImageUri != null
+                enabled = selectedImageUri != null && !isLoading
             ) {
-                Text("Start Analysis", color = Color.Black)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = Color.Black,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Uploading...", color = Color.Black)
+                } else {
+                    Text("Upload & Start Analysis", color = Color.Black)
+                }
             }
         }
     }

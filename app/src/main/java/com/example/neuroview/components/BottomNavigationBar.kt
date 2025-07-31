@@ -86,8 +86,8 @@ fun BottomNavigationBar(
                             if (currentRoute != item.route) {
                                 navController.navigate(item.route) {
                                     // Only pop up to the current screen and replace it
-                                    popUpTo(currentRoute ?: Routes.DASHBOARD) {
-                                        inclusive = true
+                                    popUpTo(currentRoute ?: Routes.DASHBOARD) { 
+                                        inclusive = true 
                                     }
                                     launchSingleTop = true
                                     restoreState = true
