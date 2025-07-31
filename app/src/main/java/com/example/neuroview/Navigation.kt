@@ -2,8 +2,10 @@ package com.example.neuroview
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.neuroview.screens.DashboardScreen
 import com.example.neuroview.screens.DetailsScreen
 import com.example.neuroview.screens.HomeScreen
@@ -17,6 +19,7 @@ object Routes {
     const val DETAILS = "details"
     const val PAST_RECORDS = "past_records"
     const val RESULT = "result"
+    const val RESULT_WITH_DATA = "result?predictionJson={predictionJson}&imageUri={imageUri}"
 }
 
 @Composable
@@ -41,7 +44,34 @@ fun NeuroViewNavigation(navController: NavHostController) {
             PastRecordsScreen(navController = navController)
         }
         composable(Routes.RESULT) {
-            com.example.neuroview.screens.ResultScreen(navController = navController)
+            com.example.neuroview.screens.ResultScreen(
+                navController = navController,
+                predictionJson = null,
+                imageUri = null
+            )
+        }
+        composable(
+            route = Routes.RESULT_WITH_DATA,
+            arguments = listOf(
+                navArgument("predictionJson") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("imageUri") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val predictionJson = backStackEntry.arguments?.getString("predictionJson")
+            val imageUri = backStackEntry.arguments?.getString("imageUri")
+            com.example.neuroview.screens.ResultScreen(
+                navController = navController,
+                predictionJson = predictionJson,
+                imageUri = imageUri
+            )
         }
     }
 }

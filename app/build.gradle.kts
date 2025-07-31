@@ -67,6 +67,12 @@ dependencies {
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+    
+    // kotlinx-serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    
+    // Coil for image loading
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
 
 }

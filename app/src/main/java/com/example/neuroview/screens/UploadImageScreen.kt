@@ -36,6 +36,9 @@ import com.example.neuroview.components.TopAppBar
 import com.example.neuroview.network.ApiService
 import com.example.neuroview.ui.theme.NeuroViewTheme
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Composable
 fun UploadImageScreen(navController: NavController) {
@@ -136,20 +139,56 @@ fun UploadImageScreen(navController: NavController) {
                         isLoading = true
                         coroutineScope.launch {
                             try {
-                                // Use the new uploadImage method instead of createImage
                                 val result = apiService.uploadImage(context, uri, fileName)
                                 result.fold(
                                     onSuccess = { response ->
-                                        Toast.makeText(context, "Image uploaded successfully!", Toast.LENGTH_SHORT).show()
-                                        selectedImageUri = null
-                                        navController.navigate(com.example.neuroview.Routes.RESULT)
+                                        if (response.prediction != null) {
+                                            try {
+                                                val jsonEncoder = Json {
+                                                    ignoreUnknownKeys = true
+                                                    isLenient = true
+                                                    coerceInputValues = true
+                                                }
+                                                val predictionJson = jsonEncoder.encodeToString(response.prediction)
+                                                println("NeuroView: Encoded prediction JSON: $predictionJson")
+                                                val encodedJson = URLEncoder.encode(predictionJson, "UTF-8")
+                                                
+                                                // Also encode the image URI for display
+                                                val imageUriString = uri.toString()
+                                                val encodedImageUri = URLEncoder.encode(imageUriString, "UTF-8")
+                                                println("NeuroView: Image URI: $imageUriString")
+                                                
+                                                navController.navigate("result?predictionJson=$encodedJson&imageUri=$encodedImageUri")
+                                                selectedImageUri = null
+
+                                                if (response.prediction.success) {
+                                                    Toast.makeText(context, "Analysis completed successfully!", Toast.LENGTH_SHORT).show()
+                                                } else {
+                                                    Toast.makeText(context, "Analysis completed with issues: ${response.prediction.error}", Toast.LENGTH_LONG).show()
+                                                }
+                                            } catch (e: Exception) {
+                                                // Fallback to basic result screen if JSON encoding fails
+                                                val imageUriString = uri.toString()
+                                                val encodedImageUri = URLEncoder.encode(imageUriString, "UTF-8")
+                                                navController.navigate("result?imageUri=$encodedImageUri")
+                                                selectedImageUri = null
+                                                Toast.makeText(context, "Analysis completed, but display issues occurred", Toast.LENGTH_LONG).show()
+                                            }
+                                        } else {
+                                            val errorMsg = response.prediction_error ?: "No prediction data received from server"
+                                            val imageUriString = uri.toString()
+                                            val encodedImageUri = URLEncoder.encode(imageUriString, "UTF-8")
+                                            Toast.makeText(context, "Upload successful, but analysis failed: $errorMsg", Toast.LENGTH_LONG).show()
+                                            navController.navigate("result?imageUri=$encodedImageUri")
+                                            selectedImageUri = null
+                                        }
                                     },
                                     onFailure = { error ->
-                                        Toast.makeText(context, "Error: ${error.message}", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, "Upload failed: ${error.message}", Toast.LENGTH_LONG).show()
                                     }
                                 )
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Network error: ${e.message}", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "Unexpected error: ${e.message}", Toast.LENGTH_LONG).show()
                             } finally {
                                 isLoading = false
                             }
@@ -167,7 +206,7 @@ fun UploadImageScreen(navController: NavController) {
                         strokeWidth = 2.dp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Uploading...", color = Color.Black)
+                    Text("Analyzing...", color = Color.Black)
                 } else {
                     Text("Upload & Start Analysis", color = Color.Black)
                 }
