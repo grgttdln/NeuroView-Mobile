@@ -11,6 +11,7 @@ import com.example.neuroview.screens.DetailsScreen
 import com.example.neuroview.screens.HomeScreen
 import com.example.neuroview.screens.PastRecordsScreen
 import com.example.neuroview.screens.UploadImageScreen
+import com.example.neuroview.screens.TumorDetailScreen
 
 object Routes {
     const val HOME = "home"
@@ -20,6 +21,9 @@ object Routes {
     const val PAST_RECORDS = "past_records"
     const val RESULT = "result"
     const val RESULT_WITH_DATA = "result?predictionJson={predictionJson}&imageUri={imageUri}"
+    const val TUMOR_DETAIL = "tumor_detail"
+
+    fun tumorDetail(tumorName: String) = "tumor_detail/$tumorName"
 }
 
 @Composable
@@ -71,6 +75,16 @@ fun NeuroViewNavigation(navController: NavHostController) {
                 navController = navController,
                 predictionJson = predictionJson,
                 imageUri = imageUri
+            )
+        }
+        composable(
+            route = "tumor_detail/{tumorName}",
+            arguments = listOf(navArgument("tumorName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val tumorName = backStackEntry.arguments?.getString("tumorName")
+            TumorDetailScreen(
+                navController = navController,
+                tumorName = tumorName
             )
         }
     }

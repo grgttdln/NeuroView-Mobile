@@ -49,7 +49,7 @@ data class ImageData(
 )
 
 class ApiService {
-    private val baseUrl = "http://192.168.1.4:5001/api/auto"
+    private val baseUrl = "http://192.168.93.7:5001/api/auto"
 
     private val client = HttpClient(Android) {
         install(ContentNegotiation) {

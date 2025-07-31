@@ -2,6 +2,7 @@ package com.example.neuroview.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -26,6 +27,7 @@ import com.example.neuroview.Routes
 import com.example.neuroview.components.BottomNavigationBar
 import com.example.neuroview.components.TopAppBar
 import com.example.neuroview.R // Make sure R is imported to access drawables
+import com.example.neuroview.data.TumorData
 
 // Accompanist Pager imports
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -36,6 +38,9 @@ import com.google.accompanist.pager.HorizontalPagerIndicator
 @OptIn(ExperimentalPagerApi::class) // Needed for Accompanist Pager
 @Composable
 fun DashboardScreen(navController: NavController) {
+    // Get tumor data
+    val tumors = TumorData.getAllTumors()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -75,17 +80,11 @@ fun DashboardScreen(navController: NavController) {
                 modifier = Modifier.padding(top = 20.dp, bottom = 40.dp)
             )
 
-            // Placeholder image resources
-            val carouselImages = listOf(
-                R.drawable.sample_glioma_image, // Ensure these drawables exist
-                R.drawable.sample_glioma_image,
-                R.drawable.sample_glioma_image,
-            )
             val pagerState = rememberPagerState(initialPage = 0)
 
             // Carousel / Horizontal Pager
             HorizontalPager(
-                count = carouselImages.size,
+                count = tumors.size,
                 state = pagerState,
                 contentPadding = PaddingValues(horizontal = 32.dp),
                 itemSpacing = 16.dp,
@@ -93,11 +92,16 @@ fun DashboardScreen(navController: NavController) {
                     .fillMaxWidth()
                     .height(300.dp)
             ) { page ->
+                val tumor = tumors[page]
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .background(Color.Transparent, RoundedCornerShape(16.dp)),
+                        .background(Color.Transparent, RoundedCornerShape(16.dp))
+                        .clickable {
+                            navController.navigate(Routes.tumorDetail(tumor.name))
+                        },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -114,8 +118,8 @@ fun DashboardScreen(navController: NavController) {
                             modifier = Modifier.fillMaxSize()
                         ) {
                             Image(
-                                painter = painterResource(id = carouselImages[page]),
-                                contentDescription = null,
+                                painter = painterResource(id = tumor.imageResource),
+                                contentDescription = "${tumor.name} image",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -138,7 +142,7 @@ fun DashboardScreen(navController: NavController) {
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Glioma",
+                                        text = tumor.name,
                                         fontSize = 20.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.Black
@@ -200,31 +204,16 @@ fun DashboardScreen(navController: NavController) {
                         append("essential.")
                     }
                 },
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color(0xFFC0C0C0),
-                textAlign = TextAlign.Center,
+                fontSize = 20.sp, // Consistent font size
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                textAlign = TextAlign.Center, // Centered text
                 modifier = Modifier
-                    .fillMaxWidth(0.8f) // Adjust width
+                    .fillMaxWidth(0.85f) // Consistent width with the text above
                     .padding(horizontal = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(20.dp)) // Space between sentences
-
-            // "NeuroView is here to help you stay informed and act early when it matters most."
-            Text(
-                text = "NeuroView is here to help you stay informed and act early when it matters most.",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color(0xFFC0C0C0),
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth(0.8f) // Adjust width
-                    .padding(horizontal = 16.dp)
-            )
-
-            // The original dashboard texts are removed as they conflict with the new design.
-            // If you need them elsewhere, move them.
+            Spacer(modifier = Modifier.height(32.dp)) // Bottom padding
         }
     }
 }
